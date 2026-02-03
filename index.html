@@ -19,6 +19,12 @@
         body {
             font-family: 'Crimson Pro', Georgia, serif;
         }
+        select {
+            color: #000000 !important;
+        }
+        select option {
+            color: #000000 !important;
+        }
     </style>
 </head>
 <body>
@@ -160,7 +166,7 @@
           };
 
           const getBloomDate = (plant) => {
-            const baseDate = plant.dateTransplanted || plant.dateDirectSown;
+            const baseDate = plant.actualDateTransplanted || plant.actualDirectSownDate;
             if (!baseDate || !plant.daysToBloom) return '';
             return calculateDate(baseDate, parseInt(plant.daysToBloom));
           };
@@ -173,20 +179,24 @@
             
             const data = plants.map(p => ({
               'Plant Name': p.name,
-              'Date Sown Indoors': p.dateSownIndoors || '',
-              'Date Transplanted': p.dateTransplanted || '',
-              'Date Direct Sown': p.dateDirectSown || '',
+              'Variety': p.variety || '',
+              'Date to Sow Indoors': p.dateToSowIndoors || '',
+              'Actual Date Sown Indoors': p.actualDateSownIndoors || '',
+              'Date to Transplant': p.dateToTransplant || '',
+              'Actual Date Transplanted': p.actualDateTransplanted || '',
+              'Date to Direct Sow': p.dateToDirectSow || '',
+              'Actual Direct Sown Date': p.actualDirectSownDate || '',
               'Days to Bloom': p.daysToBloom || '',
-              'Space Needed (sq ft)': p.spaceNeeded || '',
+              'Space Needed (inches)': p.spaceNeeded || '',
               'Plant Before/After Frost': p.beforeAfterFrost || '',
               'Height at Maturity (in)': p.heightAtMaturity || '',
               'Estimated Bloom Date': getBloomDate(p),
               'When to Plant': getPlantingDate(p.beforeAfterFrost),
               'Plot Assignment': p.plotAssignment || '',
               'Succession Sowing?': p.successionSowing || '',
-              '2nd Sowing (Planned)': p.dateDirectSown && p.successionSowing === 'Yes' ? calculateDate(p.dateDirectSown, 7) : '',
+              '2nd Sowing (Planned)': p.actualDirectSownDate && p.successionSowing === 'Yes' ? calculateDate(p.actualDirectSownDate, 7) : '',
               '2nd Sowing (Actual)': p.secondSowingActual || '',
-              '3rd Sowing (Planned)': p.dateDirectSown && p.successionSowing === 'Yes' ? calculateDate(p.dateDirectSown, 14) : '',
+              '3rd Sowing (Planned)': p.actualDirectSownDate && p.successionSowing === 'Yes' ? calculateDate(p.actualDirectSownDate, 14) : '',
               '3rd Sowing (Actual)': p.thirdSowingActual || ''
             }));
 
@@ -204,7 +214,7 @@
               color: '#f0f4f0',
               padding: '2rem'
             }}>
-              <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+              <div style={{ maxWidth: '1600px', margin: '0 auto' }}>
                 {/* Header */}
                 <header style={{
                   background: 'rgba(255, 255, 255, 0.05)',
@@ -305,10 +315,10 @@
                   }}>
                     <div>
                       <span style={{ color: '#90ee90' }}>Space Used:</span>{' '}
-                      <strong>{totalSpaceUsed.toFixed(1)} sq ft</strong>
+                      <strong>{totalSpaceUsed.toFixed(1)} inches</strong>
                     </div>
                     <div>
-                      <span style={{ color: '#90ee90' }}>Remaining:</span>{' '}
+                      <span style={{ color: '#90ee90' }}>Plot Space Remaining:</span>{' '}
                       <strong>{(totalSpace - totalSpaceUsed).toFixed(1)} sq ft</strong>
                     </div>
                   </div>
@@ -414,9 +424,13 @@
         function AddPlantForm({ onAdd, onCancel }) {
           const [formData, setFormData] = useState({
             name: '',
-            dateSownIndoors: '',
-            dateTransplanted: '',
-            dateDirectSown: '',
+            variety: '',
+            dateToSowIndoors: '',
+            actualDateSownIndoors: '',
+            dateToTransplant: '',
+            actualDateTransplanted: '',
+            dateToDirectSow: '',
+            actualDirectSownDate: '',
             daysToBloom: '',
             spaceNeeded: '',
             beforeAfterFrost: 'After',
@@ -460,29 +474,65 @@
                     />
                   </FormField>
 
-                  <FormField label="Date Sown Indoors">
+                  <FormField label="Variety">
                     <input
-                      type="date"
-                      value={formData.dateSownIndoors}
-                      onChange={(e) => setFormData({ ...formData, dateSownIndoors: e.target.value })}
+                      type="text"
+                      value={formData.variety}
+                      onChange={(e) => setFormData({ ...formData, variety: e.target.value })}
                       style={inputStyle}
                     />
                   </FormField>
 
-                  <FormField label="Date Transplanted">
+                  <FormField label="Date to Sow Indoors">
                     <input
                       type="date"
-                      value={formData.dateTransplanted}
-                      onChange={(e) => setFormData({ ...formData, dateTransplanted: e.target.value })}
+                      value={formData.dateToSowIndoors}
+                      onChange={(e) => setFormData({ ...formData, dateToSowIndoors: e.target.value })}
                       style={inputStyle}
                     />
                   </FormField>
 
-                  <FormField label="Date Direct Sown">
+                  <FormField label="Actual Date Sown Indoors">
                     <input
                       type="date"
-                      value={formData.dateDirectSown}
-                      onChange={(e) => setFormData({ ...formData, dateDirectSown: e.target.value })}
+                      value={formData.actualDateSownIndoors}
+                      onChange={(e) => setFormData({ ...formData, actualDateSownIndoors: e.target.value })}
+                      style={inputStyle}
+                    />
+                  </FormField>
+
+                  <FormField label="Date to Transplant">
+                    <input
+                      type="date"
+                      value={formData.dateToTransplant}
+                      onChange={(e) => setFormData({ ...formData, dateToTransplant: e.target.value })}
+                      style={inputStyle}
+                    />
+                  </FormField>
+
+                  <FormField label="Actual Date Transplanted">
+                    <input
+                      type="date"
+                      value={formData.actualDateTransplanted}
+                      onChange={(e) => setFormData({ ...formData, actualDateTransplanted: e.target.value })}
+                      style={inputStyle}
+                    />
+                  </FormField>
+
+                  <FormField label="Date to Direct Sow">
+                    <input
+                      type="date"
+                      value={formData.dateToDirectSow}
+                      onChange={(e) => setFormData({ ...formData, dateToDirectSow: e.target.value })}
+                      style={inputStyle}
+                    />
+                  </FormField>
+
+                  <FormField label="Actual Direct Sown Date">
+                    <input
+                      type="date"
+                      value={formData.actualDirectSownDate}
+                      onChange={(e) => setFormData({ ...formData, actualDirectSownDate: e.target.value })}
                       style={inputStyle}
                     />
                   </FormField>
@@ -496,7 +546,7 @@
                     />
                   </FormField>
 
-                  <FormField label="Space Needed (sq ft)">
+                  <FormField label="Space Needed (inches)">
                     <input
                       type="number"
                       step="0.1"
@@ -510,7 +560,7 @@
                     <select
                       value={formData.beforeAfterFrost}
                       onChange={(e) => setFormData({ ...formData, beforeAfterFrost: e.target.value })}
-                      style={inputStyle}
+                      style={{...inputStyle, color: '#000000'}}
                     >
                       <option>Before</option>
                       <option>After</option>
@@ -530,7 +580,7 @@
                     <select
                       value={formData.plotAssignment}
                       onChange={(e) => setFormData({ ...formData, plotAssignment: e.target.value })}
-                      style={inputStyle}
+                      style={{...inputStyle, color: '#000000'}}
                     >
                       <option value="">Select...</option>
                       <option>Plot 1</option>
@@ -542,10 +592,10 @@
                     <select
                       value={formData.successionSowing}
                       onChange={(e) => setFormData({ ...formData, successionSowing: e.target.value })}
-                      style={inputStyle}
+                      style={{...inputStyle, color: '#000000'}}
                     >
-                      <option>No</option>
-                      <option>Yes</option>
+                      <option>Original</option>
+                      <option>New</option>
                     </select>
                   </FormField>
                 </div>
@@ -647,11 +697,15 @@
                 <thead>
                   <tr style={{ color: '#90ee90', fontSize: '0.9rem' }}>
                     <th style={thStyle}>Plant</th>
-                    <th style={thStyle}>Sown Indoors</th>
-                    <th style={thStyle}>Transplanted</th>
-                    <th style={thStyle}>Direct Sown</th>
+                    <th style={thStyle}>Variety</th>
+                    <th style={thStyle}>Date to Sow Indoors</th>
+                    <th style={thStyle}>Actual Date Sown Indoors</th>
+                    <th style={thStyle}>Date to Transplant</th>
+                    <th style={thStyle}>Actual Date Transplanted</th>
+                    <th style={thStyle}>Date to Direct Sow</th>
+                    <th style={thStyle}>Actual Direct Sown Date</th>
                     <th style={thStyle}>Days to Bloom</th>
-                    <th style={thStyle}>Space (sq ft)</th>
+                    <th style={thStyle}>Space (in)</th>
                     <th style={thStyle}>Before/After</th>
                     <th style={thStyle}>Height (in)</th>
                     <th style={thStyle}>Est. Bloom</th>
@@ -682,25 +736,56 @@
                           </td>
                           <td style={tdStyle}>
                             <input
-                              type="date"
-                              value={editData.dateSownIndoors || ''}
-                              onChange={(e) => setEditData({ ...editData, dateSownIndoors: e.target.value })}
+                              value={editData.variety || ''}
+                              onChange={(e) => setEditData({ ...editData, variety: e.target.value })}
                               style={editInputStyle}
                             />
                           </td>
                           <td style={tdStyle}>
                             <input
                               type="date"
-                              value={editData.dateTransplanted || ''}
-                              onChange={(e) => setEditData({ ...editData, dateTransplanted: e.target.value })}
+                              value={editData.dateToSowIndoors || ''}
+                              onChange={(e) => setEditData({ ...editData, dateToSowIndoors: e.target.value })}
                               style={editInputStyle}
                             />
                           </td>
                           <td style={tdStyle}>
                             <input
                               type="date"
-                              value={editData.dateDirectSown || ''}
-                              onChange={(e) => setEditData({ ...editData, dateDirectSown: e.target.value })}
+                              value={editData.actualDateSownIndoors || ''}
+                              onChange={(e) => setEditData({ ...editData, actualDateSownIndoors: e.target.value })}
+                              style={editInputStyle}
+                            />
+                          </td>
+                          <td style={tdStyle}>
+                            <input
+                              type="date"
+                              value={editData.dateToTransplant || ''}
+                              onChange={(e) => setEditData({ ...editData, dateToTransplant: e.target.value })}
+                              style={editInputStyle}
+                            />
+                          </td>
+                          <td style={tdStyle}>
+                            <input
+                              type="date"
+                              value={editData.actualDateTransplanted || ''}
+                              onChange={(e) => setEditData({ ...editData, actualDateTransplanted: e.target.value })}
+                              style={editInputStyle}
+                            />
+                          </td>
+                          <td style={tdStyle}>
+                            <input
+                              type="date"
+                              value={editData.dateToDirectSow || ''}
+                              onChange={(e) => setEditData({ ...editData, dateToDirectSow: e.target.value })}
+                              style={editInputStyle}
+                            />
+                          </td>
+                          <td style={tdStyle}>
+                            <input
+                              type="date"
+                              value={editData.actualDirectSownDate || ''}
+                              onChange={(e) => setEditData({ ...editData, actualDirectSownDate: e.target.value })}
                               style={editInputStyle}
                             />
                           </td>
@@ -725,7 +810,7 @@
                             <select
                               value={editData.beforeAfterFrost || ''}
                               onChange={(e) => setEditData({ ...editData, beforeAfterFrost: e.target.value })}
-                              style={editInputStyle}
+                              style={{...editInputStyle, color: '#000000'}}
                             >
                               <option>Before</option>
                               <option>After</option>
@@ -745,7 +830,7 @@
                             <select
                               value={editData.plotAssignment || ''}
                               onChange={(e) => setEditData({ ...editData, plotAssignment: e.target.value })}
-                              style={editInputStyle}
+                              style={{...editInputStyle, color: '#000000'}}
                             >
                               <option value="">Select...</option>
                               <option>Plot 1</option>
@@ -756,15 +841,15 @@
                             <select
                               value={editData.successionSowing || ''}
                               onChange={(e) => setEditData({ ...editData, successionSowing: e.target.value })}
-                              style={editInputStyle}
+                              style={{...editInputStyle, color: '#000000'}}
                             >
-                              <option>No</option>
-                              <option>Yes</option>
+                              <option>Original</option>
+                              <option>New</option>
                             </select>
                           </td>
                           <td style={tdStyle}>
-                            {editData.dateDirectSown && editData.successionSowing === 'Yes'
-                              ? calculateDate(editData.dateDirectSown, 7)
+                            {editData.actualDirectSownDate && editData.successionSowing === 'New'
+                              ? calculateDate(editData.actualDirectSownDate, 7)
                               : ''}
                           </td>
                           <td style={tdStyle}>
@@ -776,8 +861,8 @@
                             />
                           </td>
                           <td style={tdStyle}>
-                            {editData.dateDirectSown && editData.successionSowing === 'Yes'
-                              ? calculateDate(editData.dateDirectSown, 14)
+                            {editData.actualDirectSownDate && editData.successionSowing === 'New'
+                              ? calculateDate(editData.actualDirectSownDate, 14)
                               : ''}
                           </td>
                           <td style={tdStyle}>
@@ -802,9 +887,13 @@
                       ) : (
                         <>
                           <td style={tdStyle}><strong>{plant.name}</strong></td>
-                          <td style={tdStyle}>{plant.dateSownIndoors}</td>
-                          <td style={tdStyle}>{plant.dateTransplanted}</td>
-                          <td style={tdStyle}>{plant.dateDirectSown}</td>
+                          <td style={tdStyle}>{plant.variety}</td>
+                          <td style={tdStyle}>{plant.dateToSowIndoors}</td>
+                          <td style={tdStyle}>{plant.actualDateSownIndoors}</td>
+                          <td style={tdStyle}>{plant.dateToTransplant}</td>
+                          <td style={tdStyle}>{plant.actualDateTransplanted}</td>
+                          <td style={tdStyle}>{plant.dateToDirectSow}</td>
+                          <td style={tdStyle}>{plant.actualDirectSownDate}</td>
                           <td style={tdStyle}>{plant.daysToBloom}</td>
                           <td style={tdStyle}>{plant.spaceNeeded}</td>
                           <td style={tdStyle}>{plant.beforeAfterFrost}</td>
@@ -814,14 +903,14 @@
                           <td style={tdStyle}>{plant.plotAssignment}</td>
                           <td style={tdStyle}>{plant.successionSowing}</td>
                           <td style={tdStyle}>
-                            {plant.dateDirectSown && plant.successionSowing === 'Yes'
-                              ? calculateDate(plant.dateDirectSown, 7)
+                            {plant.actualDirectSownDate && plant.successionSowing === 'New'
+                              ? calculateDate(plant.actualDirectSownDate, 7)
                               : ''}
                           </td>
                           <td style={tdStyle}>{plant.secondSowingActual}</td>
                           <td style={tdStyle}>
-                            {plant.dateDirectSown && plant.successionSowing === 'Yes'
-                              ? calculateDate(plant.dateDirectSown, 14)
+                            {plant.actualDirectSownDate && plant.successionSowing === 'New'
+                              ? calculateDate(plant.actualDirectSownDate, 14)
                               : ''}
                           </td>
                           <td style={tdStyle}>{plant.thirdSowingActual}</td>
@@ -874,10 +963,10 @@
                 }
               }
 
-              if (plant.dateDirectSown) {
-                const sown = new Date(plant.dateDirectSown);
+              if (plant.actualDirectSownDate) {
+                const sown = new Date(plant.actualDirectSownDate);
                 if (sown.getMonth() === month.getMonth() && sown.getFullYear() === month.getFullYear()) {
-                  events.push({ type: 'sown', plant: plant.name, date: plant.dateDirectSown });
+                  events.push({ type: 'sown', plant: plant.name, date: plant.actualDirectSownDate });
                 }
               }
             });
