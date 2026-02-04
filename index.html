@@ -20,9 +20,21 @@
             font-family: 'Crimson Pro', Georgia, serif;
         }
         select {
+            background: #ffffff !important;
             color: #000000 !important;
         }
         select option {
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
+        input[type="date"],
+        input[type="text"],
+        input[type="number"] {
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #000000 !important;
+        }
+        textarea {
+            background: rgba(255, 255, 255, 0.9) !important;
             color: #000000 !important;
         }
     </style>
@@ -105,6 +117,13 @@
             </svg>
         );
 
+        const Copy = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        );
+
         function GardenTracker() {
           const [plants, setPlants] = useState([]);
           const [lastFrostDate, setLastFrostDate] = useState('2025-05-15');
@@ -145,6 +164,20 @@
 
           const deletePlant = (id) => {
             setPlants(plants.filter(p => p.id !== id));
+          };
+
+          const copyPlant = (plant) => {
+            const newPlant = {
+              ...plant,
+              id: Date.now(),
+              name: plant.name + ' (Copy)',
+              actualDateSownIndoors: '',
+              actualDateTransplanted: '',
+              actualDirectSownDate: '',
+              secondSowingActual: '',
+              thirdSowingActual: ''
+            };
+            setPlants([...plants, newPlant]);
           };
 
           const calculateDate = (baseDate, daysToAdd) => {
@@ -197,7 +230,8 @@
               '2nd Sowing (Planned)': p.actualDirectSownDate && p.successionSowing === 'Yes' ? calculateDate(p.actualDirectSownDate, 7) : '',
               '2nd Sowing (Actual)': p.secondSowingActual || '',
               '3rd Sowing (Planned)': p.actualDirectSownDate && p.successionSowing === 'Yes' ? calculateDate(p.actualDirectSownDate, 14) : '',
-              '3rd Sowing (Actual)': p.thirdSowingActual || ''
+              '3rd Sowing (Actual)': p.thirdSowingActual || '',
+              'Notes': p.notes || ''
             }));
 
             const ws = XLSX.utils.json_to_sheet(data);
@@ -403,6 +437,7 @@
                     plants={plants}
                     onUpdate={updatePlant}
                     onDelete={deletePlant}
+                    onCopy={copyPlant}
                     getBloomDate={getBloomDate}
                     getPlantingDate={getPlantingDate}
                     calculateDate={calculateDate}
@@ -438,7 +473,8 @@
             plotAssignment: '',
             successionSowing: 'No',
             secondSowingActual: '',
-            thirdSowingActual: ''
+            thirdSowingActual: '',
+            notes: ''
           });
 
           const handleSubmit = (e) => {
@@ -580,11 +616,11 @@
                     <select
                       value={formData.plotAssignment}
                       onChange={(e) => setFormData({ ...formData, plotAssignment: e.target.value })}
-                      style={{...inputStyle, color: '#000000'}}
+                      style={{...inputStyle, background: '#ffffff', color: '#000000'}}
                     >
                       <option value="">Select...</option>
-                      <option>Plot 1</option>
-                      <option>Plot 2</option>
+                      <option>Original</option>
+                      <option>New</option>
                     </select>
                   </FormField>
 
@@ -592,11 +628,22 @@
                     <select
                       value={formData.successionSowing}
                       onChange={(e) => setFormData({ ...formData, successionSowing: e.target.value })}
-                      style={{...inputStyle, color: '#000000'}}
+                      style={{...inputStyle, background: '#ffffff', color: '#000000'}}
                     >
-                      <option>Original</option>
-                      <option>New</option>
+                      <option>No</option>
+                      <option>Yes</option>
                     </select>
+                  </FormField>
+                </div>
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <FormField label="Notes">
+                    <textarea
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      rows="3"
+                      style={{...inputStyle, background: 'rgba(255, 255, 255, 0.9)', color: '#000000', resize: 'vertical'}}
+                    />
                   </FormField>
                 </div>
 
@@ -657,14 +704,14 @@
         const inputStyle = {
           width: '100%',
           padding: '0.75rem',
-          background: 'rgba(255, 255, 255, 0.1)',
+          background: 'rgba(255, 255, 255, 0.9)',
           border: '1px solid rgba(144, 238, 144, 0.3)',
           borderRadius: '8px',
-          color: '#f0f4f0',
+          color: '#000000',
           fontSize: '1rem'
         };
 
-        function TableView({ plants, onUpdate, onDelete, getBloomDate, getPlantingDate, calculateDate, editingId, setEditingId }) {
+        function TableView({ plants, onUpdate, onDelete, onCopy, getBloomDate, getPlantingDate, calculateDate, editingId, setEditingId }) {
           const [editData, setEditData] = useState({});
 
           const startEdit = (plant) => {
@@ -716,6 +763,7 @@
                     <th style={thStyle}>2nd Actual</th>
                     <th style={thStyle}>3rd Planned</th>
                     <th style={thStyle}>3rd Actual</th>
+                    <th style={thStyle}>Notes</th>
                     <th style={thStyle}>Actions</th>
                   </tr>
                 </thead>
@@ -830,25 +878,25 @@
                             <select
                               value={editData.plotAssignment || ''}
                               onChange={(e) => setEditData({ ...editData, plotAssignment: e.target.value })}
-                              style={{...editInputStyle, color: '#000000'}}
+                              style={{...editInputStyle, background: '#ffffff', color: '#000000'}}
                             >
                               <option value="">Select...</option>
-                              <option>Plot 1</option>
-                              <option>Plot 2</option>
+                              <option>Original</option>
+                              <option>New</option>
                             </select>
                           </td>
                           <td style={tdStyle}>
                             <select
                               value={editData.successionSowing || ''}
                               onChange={(e) => setEditData({ ...editData, successionSowing: e.target.value })}
-                              style={{...editInputStyle, color: '#000000'}}
+                              style={{...editInputStyle, background: '#ffffff', color: '#000000'}}
                             >
-                              <option>Original</option>
-                              <option>New</option>
+                              <option>No</option>
+                              <option>Yes</option>
                             </select>
                           </td>
                           <td style={tdStyle}>
-                            {editData.actualDirectSownDate && editData.successionSowing === 'New'
+                            {editData.actualDirectSownDate && editData.successionSowing === 'Yes'
                               ? calculateDate(editData.actualDirectSownDate, 7)
                               : ''}
                           </td>
@@ -861,7 +909,7 @@
                             />
                           </td>
                           <td style={tdStyle}>
-                            {editData.actualDirectSownDate && editData.successionSowing === 'New'
+                            {editData.actualDirectSownDate && editData.successionSowing === 'Yes'
                               ? calculateDate(editData.actualDirectSownDate, 14)
                               : ''}
                           </td>
@@ -871,6 +919,14 @@
                               value={editData.thirdSowingActual || ''}
                               onChange={(e) => setEditData({ ...editData, thirdSowingActual: e.target.value })}
                               style={editInputStyle}
+                            />
+                          </td>
+                          <td style={tdStyle}>
+                            <textarea
+                              value={editData.notes || ''}
+                              onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
+                              rows="2"
+                              style={{...editInputStyle, background: 'rgba(255, 255, 255, 0.9)', color: '#000000', resize: 'vertical'}}
                             />
                           </td>
                           <td style={tdStyle}>
@@ -903,23 +959,27 @@
                           <td style={tdStyle}>{plant.plotAssignment}</td>
                           <td style={tdStyle}>{plant.successionSowing}</td>
                           <td style={tdStyle}>
-                            {plant.actualDirectSownDate && plant.successionSowing === 'New'
+                            {plant.actualDirectSownDate && plant.successionSowing === 'Yes'
                               ? calculateDate(plant.actualDirectSownDate, 7)
                               : ''}
                           </td>
                           <td style={tdStyle}>{plant.secondSowingActual}</td>
                           <td style={tdStyle}>
-                            {plant.actualDirectSownDate && plant.successionSowing === 'New'
+                            {plant.actualDirectSownDate && plant.successionSowing === 'Yes'
                               ? calculateDate(plant.actualDirectSownDate, 14)
                               : ''}
                           </td>
                           <td style={tdStyle}>{plant.thirdSowingActual}</td>
+                          <td style={tdStyle}>{plant.notes}</td>
                           <td style={tdStyle}>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                              <button onClick={() => startEdit(plant)} style={iconButtonStyle}>
+                              <button onClick={() => onCopy(plant)} style={iconButtonStyle} title="Copy plant">
+                                <Copy size={16} />
+                              </button>
+                              <button onClick={() => startEdit(plant)} style={iconButtonStyle} title="Edit plant">
                                 <Edit2 size={16} />
                               </button>
-                              <button onClick={() => onDelete(plant.id)} style={iconButtonStyle}>
+                              <button onClick={() => onDelete(plant.id)} style={iconButtonStyle} title="Delete plant">
                                 <Trash2 size={16} />
                               </button>
                             </div>
@@ -1055,10 +1115,10 @@
         const editInputStyle = {
           width: '100%',
           padding: '0.5rem',
-          background: 'rgba(255, 255, 255, 0.1)',
+          background: 'rgba(255, 255, 255, 0.9)',
           border: '1px solid rgba(144, 238, 144, 0.3)',
           borderRadius: '6px',
-          color: '#f0f4f0',
+          color: '#000000',
           fontSize: '0.9rem'
         };
 
